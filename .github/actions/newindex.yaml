@@ -1,0 +1,21 @@
+name: Run data loaders and commit files
+
+on:
+  workflow_dispatch:
+  # Run this workflow every 6 hours on the 38th minute of the hour
+  schedule:
+    - cron: "0 0 * * *"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  generate-index:
+    name: Generate New Index
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
