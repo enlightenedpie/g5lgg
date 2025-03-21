@@ -19,3 +19,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: datastore
+      - name: Generate
+        run: |
+          ./scripts/generate-new-index.sh
+      - name: Commit files to the repo
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "[BOT] Updated data files"
+          commit_user_name: "GitHub Actions"
+          skip_dirty_check: true
+          add_options: "-A"
+          commit_options: "--no-verify"
+          push_options: "--force"
