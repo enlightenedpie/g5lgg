@@ -5,7 +5,7 @@ type DictionaryType = { word: string };
 
 export const useDictionary = async (): Promise<DictionaryType | null> => {
   const activeIndex = await fetch(
-    "https://raw.githubusercontent.com/enlightenedpie/five-letter-guessing-game/refs/heads/main/data/activeIndex.txt"
+    "https://raw.githubusercontent.com/enlightenedpie/g5lgg/refs/heads/main/data/activeIndex.txt"
   ).then((res) => res.text());
 
   const [{ localUri }] = await Asset.loadAsync(

@@ -80,7 +80,7 @@ export default function RootLayout() {
             onPress={() =>
               send({
                 type: "GUESS",
-                value: "bling",
+                value: "drips",
               })
             }
           />
