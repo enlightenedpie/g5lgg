@@ -4,58 +4,55 @@ import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useMemo, useState } from "react";
-import { Dimensions, StyleSheet, Button, Text } from "react-native";
+import { useEffect, useMemo } from "react";
+import { Dimensions, Image, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMachine } from "@xstate/react";
 import { g5lggMachine } from "@/machines/g5lggMachine";
-import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { EmbeddedKeyboard } from "@/components/EmbeddedKeyboard";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { G5LGGRow } from "@/components/GameRow";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-const { width } = Dimensions.get("window");
-const CELL_SIZE = width / 5 - 24;
-const LETTER_SIZE = CELL_SIZE - 16;
+const { width, height } = Dimensions.get("window");
+
+const numOfRows = 6;
 
 export default function RootLayout() {
   const backgroundColor = useThemeColor({}, "background");
-  const [currentGuess, setCurrentGuess] = useState("");
   const [state, send] = useMachine(g5lggMachine);
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
-  const gameBoard = useMemo(
-    () =>
-      Array.from({ length: 6 }, (_, ind) => {
-        const rowWord = state.context.guesses[ind] || "     ";
-        return (
-          <ThemedView style={styles.row}>
-            {Array.from({ length: 5 }, (_, i) => {
-              const currLtr = rowWord[i];
-              const isExact = state.context.word?.indexOf(currLtr) === i;
-              const isExists = state.context.word?.includes(currLtr);
-
-              return (
-                <ThemedView
-                  style={[
-                    styles.cell,
-                    isExists && styles.bgExists,
-                    isExact && styles.bgExact,
-                  ]}
-                >
-                  <Text style={styles.cellText}>{(currLtr || currentGuess[i]).toUpperCase()}</Text>
-                </ThemedView>
-              );
-            })}
-          </ThemedView>
-        );
-      }),
-    [state.context, currentGuess]
+  const rowsRemaining = useMemo(
+    () => numOfRows - state.context.guesses.length - 1,
+    [state.context.guessNumber]
   );
+
+  const _setter = (text: string) => {
+    const actionMap: { [key: string]: () => void } = {
+      Back: () =>
+        send({
+          type: "BACK",
+        }),
+      Enter: () => {
+        send({
+          type: "ENTER",
+        });
+      },
+      default: () =>
+        send({
+          type: "UPDATE",
+          value: text,
+        }),
+    };
+
+    actionMap[text] ? actionMap[text]() : actionMap.default();
+  };
 
   useEffect(() => {
     if (loaded) {
@@ -70,22 +67,34 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={DarkTheme}>
       <SafeAreaView style={[{ backgroundColor }, styles.mainContainer]}>
-        <ThemedView style={[styles.borderContainer]}>
-          <Text>Whassup</Text>
-        </ThemedView>
-        <ThemedView style={[styles.topContainer]}>{gameBoard}</ThemedView>
-        <ThemedView style={styles.borderContainer}>
-          <Button
-            title="Guess"
-            onPress={() =>
-              send({
-                type: "GUESS",
-                value: "drips",
-              })
-            }
+        <ThemedView style={styles.topContainer}>
+          <Image
+            source={require("@/assets/images/g5lgg-logo.png")}
+            style={styles.g5lggLogo}
+            resizeMode="center"
           />
         </ThemedView>
-        <ThemedText>{JSON.stringify(state)}</ThemedText>
+        <ThemedView style={styles.gridContainer}>
+          {state.context.guesses.map((guess, index) => (
+            <G5LGGRow
+              key={`g5lgg-row-${index}`}
+              guess={guess}
+              validate={state.context.shouldValidate[index]}
+              quick={state.matches({
+                loaded: "gameover",
+              })}
+            />
+          ))}
+          {rowsRemaining > 0 && (
+            <>
+              <G5LGGRow guess={state.context.currentGuess.join("")} isActive />
+              {Array.from({ length: rowsRemaining }, (_, i) => (
+                <G5LGGRow key={`g5lgg-rowRem${i}`} guess="" />
+              ))}
+            </>
+          )}
+        </ThemedView>
+        <EmbeddedKeyboard onKeyPress={_setter} />
       </SafeAreaView>
       <StatusBar style="auto" />
     </ThemeProvider>
@@ -101,38 +110,19 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     borderWidth: 1,
   },
-  topContainer: {
-    padding: 24,
-    height: width + 24,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 10,
-    paddingBottom: 10,
-  },
-  cell: {
-    padding: 0,
-    borderColor: "#eeeeee50",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderRadius: 8,
-    width: CELL_SIZE,
-    height: CELL_SIZE,
+  gridContainer: {
+    flex: 1,
+    flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
+    width: width,
+    height: "60%",
   },
-  cellText: {
-    color: "#eee",
-    fontSize: LETTER_SIZE,
-    fontWeight: "bold",
+  topContainer: {
+    height: height / 10,
+  },
+  g5lggLogo: {
     width: "100%",
-    textAlign: "center",
-  },
-  bgExists: {
-    backgroundColor: "#c3a900",
-  },
-  bgExact: {
-    backgroundColor: "#008000",
+    height: height / 10
   },
 });

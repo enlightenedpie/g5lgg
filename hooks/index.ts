@@ -1,1 +1,1 @@
-export { useDictionary } from './useDictionary';
+export { useDictionary, getDictionary } from './useDictionary';
