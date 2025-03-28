@@ -100,15 +100,15 @@ const styles = StyleSheet.create({
   },
   keyboardRow: {
     width: "100%",
-    gap: 8,
+    gap: 6,
     flexDirection: "row",
     justifyContent: "center",
     marginBottom: 8,
   },
   key: {
     minWidth: (width - 88) / 10,
-    paddingVertical: 8,
-    paddingHorizontal: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#666",

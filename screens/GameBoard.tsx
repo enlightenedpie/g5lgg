@@ -1,10 +1,7 @@
 import "react-native-reanimated";
 
-import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { StatusBar } from "expo-status-bar";
-import { Stack } from "expo-router";
 import { useEffect, useMemo } from "react";
 import { Dimensions, Image, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -66,13 +63,36 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={DarkTheme}>
-      <Stack>
-        <Stack.Screen name="main" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <SafeAreaView style={[{ backgroundColor }, styles.mainContainer]}>
+      <ThemedView style={styles.topContainer}>
+        <Image
+          source={require("@/assets/images/g5lgg-logo.png")}
+          style={styles.g5lggLogo}
+          resizeMode="center"
+        />
+      </ThemedView>
+      <ThemedView style={styles.gridContainer}>
+        {state.context.guesses.map((guess, index) => (
+          <G5LGGRow
+            key={`g5lgg-row-${index}`}
+            guess={guess}
+            validate={state.context.shouldValidate[index]}
+            quick={state.matches({
+              loaded: "gameover",
+            })}
+          />
+        ))}
+        {rowsRemaining > 0 && (
+          <>
+            <G5LGGRow guess={state.context.currentGuess.join("")} isActive />
+            {Array.from({ length: rowsRemaining - 1 }, (_, i) => (
+              <G5LGGRow key={`g5lgg-rowRem${i}`} guess="" />
+            ))}
+          </>
+        )}
+      </ThemedView>
+      <EmbeddedKeyboard onKeyPress={_setter} />
+    </SafeAreaView>
   );
 }
 
